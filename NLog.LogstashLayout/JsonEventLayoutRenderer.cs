@@ -13,18 +13,76 @@ namespace NLog.LogstashLayout
     [LayoutRenderer("json_event")]
     public class JsonEventLayoutRenderer : LayoutRenderer
     {
+        private string _correlationContextKey = "__correlationContext__";
+        private int _shortMessageLength = 200;
+        private string _appendToShortenedMessage = "...";
+
+        public string CorrelationContextKey 
+        { 
+            get 
+            { 
+                return _correlationContextKey;
+            } 
+            set
+            {
+                _correlationContextKey = value;
+            }
+        }
+
+        public int ShortMessageLength
+        {
+            get
+            {
+                return _shortMessageLength;
+            }
+            set
+            {
+                _shortMessageLength = value;
+            }
+        }
+
+        public string AppendToShortenedMessage
+        {
+            get
+            {
+                return _appendToShortenedMessage;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    value = String.Empty;
+                }
+                _appendToShortenedMessage = value;
+            }
+        }
+
         protected override void Append(StringBuilder builder, LogEventInfo logEvent)
         {
             JsonEvent jEvent = new JsonEvent
             {
-                Message = logEvent.FormattedMessage,
+                ShortMessage = ShortenMessage(logEvent.FormattedMessage),
+                FullMessage = logEvent.FormattedMessage,
                 SourceHost = Environment.MachineName,
                 Timestamp = logEvent.TimeStamp.ToUniversalTime(),
             };
-                        
+
             AddFieldInfo(logEvent, jEvent);
             AddExceptionInfo(logEvent, jEvent);
             builder.Append(SerializeToJson(jEvent));
+        }
+
+        private string ShortenMessage(string fullMessage)
+        {
+            if (fullMessage == null)
+            {
+                return null;
+            }
+            if (fullMessage.Length <= ShortMessageLength)
+            {
+                return fullMessage;
+            }
+            return fullMessage.Substring(0, ShortMessageLength - AppendToShortenedMessage.Length) + AppendToShortenedMessage;
         }
 
         private string SerializeToJson(JsonEvent jEvent)
@@ -33,8 +91,7 @@ namespace NLog.LogstashLayout
             {
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                NullValueHandling= NullValueHandling.Ignore,
-                StringEscapeHandling = StringEscapeHandling.Default,
+                NullValueHandling = NullValueHandling.Ignore
             };
             return JsonConvert.SerializeObject(jEvent, Formatting.None, settings);
         }
@@ -87,11 +144,15 @@ namespace NLog.LogstashLayout
         public string SourceHost { get; set; }
 
         [JsonProperty("@message")]
-        public string Message { get; set; }
+        public string ShortMessage { get; set; }
+
+        [JsonProperty("@full_message")]
+        public string FullMessage { get; set; }
+
 
         [JsonProperty("@timestamp")]
         public DateTime Timestamp { get; set; }
-        
+
         [JsonProperty("@fields")]
         public FieldInfo Fields { get; set; }
     }
