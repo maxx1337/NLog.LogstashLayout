@@ -17,12 +17,12 @@ namespace NLog.LogstashLayout
         private int _shortMessageLength = 200;
         private string _appendToShortenedMessage = "...";
 
-        public string CorrelationContextKey 
-        { 
-            get 
-            { 
+        public string CorrelationContextKey
+        {
+            get
+            {
                 return _correlationContextKey;
-            } 
+            }
             set
             {
                 _correlationContextKey = value;
@@ -109,6 +109,7 @@ namespace NLog.LogstashLayout
                 ThreadId = Thread.CurrentThread.ManagedThreadId,
                 ThreadName = Thread.CurrentThread.Name,
                 CorrelationContext = GetCorrelationContext(logEvent),
+                Properties = logEvent.Properties,
             };
         }
 
@@ -172,6 +173,7 @@ namespace NLog.LogstashLayout
         public string AppDomainName { get; set; }
         public string NestedDiagnosticsContext { get; set; }
         public string MappedDiagnosticsContext { get; set; }
+        public IDictionary<object, object> Properties { get; set; }
     }
 
     internal class ExceptionInfo

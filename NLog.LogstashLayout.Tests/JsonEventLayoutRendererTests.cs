@@ -19,10 +19,10 @@ namespace NLog.LogstashLayout.Tests
 with
 
 some newlines and german öäüß Sonderzeichen!");
-            
+
             // act
             string result = layout.Render(logEvent);
-            
+
             // assert something here
             Console.WriteLine(result);
         }
@@ -38,7 +38,7 @@ with
 
 some newlines and german öäüß Sonderzeichen!");
 
-                       
+
             logEvent.Exception = new InvalidOperationException("Something's wrong here");
 
             // act
@@ -102,6 +102,24 @@ some newlines and german öäüß Sonderzeichen!");
             // assert something here
             JsonEvent theEvent = JsonConvert.DeserializeObject<JsonEvent>(result);
             Assert.AreEqual("My message with s___", theEvent.ShortMessage);
+        }
+
+        [Test]
+        public void Append_withProperties_returnsProperties()
+        {
+            // arrange
+            JsonEventLayoutRenderer layout = new JsonEventLayoutRenderer();
+            LogEventInfo logEvent = new LogEventInfo(LogLevel.Warn, "UnitTestLogger", @"My message with Properties!");
+            logEvent.Properties["CustomProp"] = "myProp";
+
+            // act
+            string result = layout.Render(logEvent);
+
+            // assert something here
+            JsonEvent theEvent = JsonConvert.DeserializeObject<JsonEvent>(result);
+            Assert.AreEqual("My message with Properties!", theEvent.ShortMessage);
+            Assert.AreEqual(1, theEvent.Fields.Properties.Count);
+            Assert.AreEqual("myProp", theEvent.Fields.Properties["CustomProp"]);
         }
     }
 }
