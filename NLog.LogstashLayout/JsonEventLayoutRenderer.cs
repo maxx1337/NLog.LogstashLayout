@@ -29,6 +29,8 @@ namespace NLog.LogstashLayout
             }
         }
 
+        public bool EnableShortMessage { get; set; }
+
         public int ShortMessageLength
         {
             get
@@ -61,8 +63,8 @@ namespace NLog.LogstashLayout
         {
             JsonEvent jEvent = new JsonEvent
             {
-                ShortMessage = ShortenMessage(logEvent.FormattedMessage),
-                FullMessage = logEvent.FormattedMessage,
+                ShortMessage = EnableShortMessage ? ShortenMessage(logEvent.FormattedMessage) : logEvent.FormattedMessage,
+                FullMessage = EnableShortMessage ? logEvent.FormattedMessage : null,
                 SourceHost = Environment.MachineName,
                 Timestamp = logEvent.TimeStamp.ToUniversalTime(),
             };
@@ -149,7 +151,6 @@ namespace NLog.LogstashLayout
 
         [JsonProperty("@full_message")]
         public string FullMessage { get; set; }
-
 
         [JsonProperty("@timestamp")]
         public DateTime Timestamp { get; set; }

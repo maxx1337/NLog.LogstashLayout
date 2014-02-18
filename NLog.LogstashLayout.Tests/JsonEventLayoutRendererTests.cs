@@ -48,13 +48,12 @@ some newlines and german öäüß Sonderzeichen!");
             Console.WriteLine(result);
         }
 
-
-
         [Test]
-        public void Append_withNiceLogEventAndLongMessageAndEmptySuffix_returnsShortenedMessage()
+        public void Append_withNiceLogEventAndLongMessageAndEmptySuffix_returnsFullMessage()
         {
             // arrange
             JsonEventLayoutRenderer layout = new JsonEventLayoutRenderer();
+            layout.EnableShortMessage = false; // is default
             layout.ShortMessageLength = 20;
             layout.AppendToShortenedMessage = String.Empty;
             LogEventInfo logEvent = new LogEventInfo(LogLevel.Warn, "UnitTestLogger", @"My message with some newlines and german öäüß Sonderzeichen!");
@@ -62,6 +61,32 @@ some newlines and german öäüß Sonderzeichen!");
 
             // act
             string result = layout.Render(logEvent);
+
+            // full_message is null, should not be in json
+            Assert.IsFalse(result.Contains("full_message"));
+
+            JsonEvent theEvent = JsonConvert.DeserializeObject<JsonEvent>(result);
+            // full log message
+            Assert.AreEqual("My message with some newlines and german öäüß Sonderzeichen!", theEvent.ShortMessage);
+            Assert.IsNull(theEvent.FullMessage);
+        }
+
+        [Test]
+        public void Append_withNiceLogEventAndLongMessageAndEmptySuffix_returnsShortenedMessage()
+        {
+            // arrange
+            JsonEventLayoutRenderer layout = new JsonEventLayoutRenderer();
+            layout.EnableShortMessage = true;
+            layout.ShortMessageLength = 20;
+            layout.AppendToShortenedMessage = String.Empty;
+            LogEventInfo logEvent = new LogEventInfo(LogLevel.Warn, "UnitTestLogger", @"My message with some newlines and german öäüß Sonderzeichen!");
+            logEvent.Exception = new InvalidOperationException("Something's wrong here");
+
+            // act
+            string result = layout.Render(logEvent);
+
+            // full_message is not null, should be in json
+            Assert.IsTrue(result.Contains("full_message"));
 
             // assert something here
             JsonEvent theEvent = JsonConvert.DeserializeObject<JsonEvent>(result);
@@ -73,6 +98,7 @@ some newlines and german öäüß Sonderzeichen!");
         {
             // arrange
             JsonEventLayoutRenderer layout = new JsonEventLayoutRenderer();
+            layout.EnableShortMessage = true;
             layout.ShortMessageLength = 20;
             layout.AppendToShortenedMessage = String.Empty;
             LogEventInfo logEvent = new LogEventInfo(LogLevel.Warn, "UnitTestLogger", @"My message with some newlines and german öäüß Sonderzeichen!");
@@ -91,6 +117,7 @@ some newlines and german öäüß Sonderzeichen!");
         {
             // arrange
             JsonEventLayoutRenderer layout = new JsonEventLayoutRenderer();
+            layout.EnableShortMessage = true;
             layout.ShortMessageLength = 20;
             layout.AppendToShortenedMessage = "___";
             LogEventInfo logEvent = new LogEventInfo(LogLevel.Warn, "UnitTestLogger", @"My message with some newlines and german öäüß Sonderzeichen!");
