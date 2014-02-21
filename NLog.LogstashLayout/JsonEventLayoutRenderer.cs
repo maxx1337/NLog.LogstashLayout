@@ -31,6 +31,8 @@ namespace NLog.LogstashLayout
 
         public bool EnableShortMessage { get; set; }
 
+        public string Env { get; set; }
+
         public int ShortMessageLength
         {
             get
@@ -67,6 +69,7 @@ namespace NLog.LogstashLayout
                 FullMessage = EnableShortMessage ? logEvent.FormattedMessage : null,
                 SourceHost = Environment.MachineName,
                 Timestamp = logEvent.TimeStamp.ToUniversalTime(),
+                Env = this.Env
             };
 
             AddFieldInfo(logEvent, jEvent);
@@ -157,6 +160,9 @@ namespace NLog.LogstashLayout
 
         [JsonProperty("@fields")]
         public FieldInfo Fields { get; set; }
+
+        [JsonProperty("@env")]
+        public string Env { get; set; }
     }
 
     internal class FieldInfo
